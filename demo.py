@@ -1,26 +1,25 @@
+import aiohttp
 import asyncio
-import random
 import time
 
-async def getData():
-	delay = random.randint(1,10)
-	await asyncio.sleep(delay)
-	return delay
+start_time = time.time()
 
-async def processData(number):
-	print(f"starting coroutine {number}")
-	delay = await getData()
-	return f"Delay for coroutine {number} was {delay}s. "
+async def getdata(session,url):
+    async with session.get(url) as resp:
+        r = await resp.json()
+        print(r['delay'])
 
 async def main():
-	print("start")
-	r1 = asyncio.create_task(processData(1))
-	r2 = asyncio.create_task(processData(2))
-	r3 = asyncio.create_task(processData(3))
-	value = await r1
-	value += await r2
-	value += await r3
-	print(value)
+    url = 'http://127.0.0.1:5000/demo'
+    async with aiohttp.ClientSession() as session:
+
+        tasks = []
+        for number in range(1, 15):
+            tasks.append(asyncio.create_task(getdata(session, url)))
+
+        for task in tasks:
+            await task
 
 
 asyncio.run(main())
+print(f"{(time.time() - start_time)} seconds")
